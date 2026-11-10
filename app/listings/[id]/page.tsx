@@ -1,13 +1,32 @@
 import React, { Suspense } from "react";
 import ListingDetailClient from "@/components/ListingDetailClient";
+import { getListings } from "@/lib/json-storage";
 
-export default async function ListingDetailPage({
+export const instant = false;
+
+export async function generateStaticParams() {
+  try {
+    const listings = await getListings();
+    return listings.map((l) => ({ id: l.id }));
+  } catch {
+    return [];
+  }
+}
+
+async function ListingDetailContent({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
+  const resolved = await params;
+  return <ListingDetailClient id={resolved.id} />;
+}
 
+export default function ListingDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   return (
     <Suspense
       fallback={
@@ -16,7 +35,7 @@ export default async function ListingDetailPage({
         </div>
       }
     >
-      <ListingDetailClient id={id} />
+      <ListingDetailContent params={params} />
     </Suspense>
   );
 }
